@@ -1,0 +1,318 @@
+//Paquete para organizar clases relacionadas
+package POO;
+/*generador de lista de aviones segun temporada de estacion*/
+/*agregar el archivo ObjetosAviones.dat en la ruta src/ObjetosAviones.dat parea ejecutar la opcion 4 en adelante*/`	
+
+// Importación de paquetes necesarios para el funcionamiento del programa
+import java.util.LinkedList;
+import java.util.Scanner;
+import java.util.ArrayList;
+import java.util.InputMismatchException;
+import java.io.BufferedInputStream;
+import java.io.BufferedOutputStream;
+import java.io.EOFException;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.Serializable;
+
+//Definición de la excepción personalizada ValorNoValido que extiende de la clase Exception
+class ValorNoValido extends Exception {
+  private static final long serialVersionUID = 4490970602703537639L;
+  // Constructor que recibe un mensaje y lo pasa al constructor de la clase base (Exception)
+  public ValorNoValido(String mensaje) {
+      super(mensaje);
+  }
+}
+
+//Definición de la clase Avion que implementa Serializable
+class Avion implements Serializable {
+  private static final long serialVersionUID = -5180573894217699445L;
+
+  // Atributos de la clase
+  String modelo;
+  int capacidad;
+  String temporada;
+
+  // Constructor con parámetros
+  public Avion(String model, int capacidad, String temp) {
+      this.modelo = model;
+      this.capacidad = capacidad;
+      this.temporada = temp;
+  }
+
+  // Constructor sin parámetros
+  public Avion() {
+  }
+
+  // Métodos getters y setters para acceder y modificar los atributos
+  public String getModelo() {
+      return modelo;
+  }
+
+  public void setModelo(String modelo) {
+      this.modelo = modelo;
+  }
+
+  public int getCapacidad() {
+      return capacidad;
+  }
+
+  public void setCapacidad(int capacidad) {
+      this.capacidad = capacidad;
+  }
+
+  public String getTemporada() {
+      return temporada;
+  }
+
+  public void setTemporada(String temporada) {
+      this.temporada = temporada;
+  }
+}
+
+//Clase principal del programa
+public class GestorAviones {
+  public static void main(String[] args) {
+      // Creación de un objeto Scanner para la entrada de datos
+      Scanner scanner = new Scanner(System.in);
+
+      // Inicialización de variables
+      int opcion = 0;
+      LinkedList<Avion> listaAviones = null;
+      ArrayList<Avion> avionesArchivados = new ArrayList<>();
+
+      // Bucle principal del programa
+      while (opcion != 7) {
+          try {
+              // Llamada a un método para mostrar el menú
+              mostrarMenu();
+              // Lectura de la opción ingresada por el usuario
+              opcion = scanner.nextInt();
+          } catch (InputMismatchException e) {
+              // Manejo de excepciones para entradas inválidas
+              System.out.println("Error: Ingrese un número válido.");
+              scanner.next(); // Limpia el buffer del scanner para evitar un bucle infinito
+              continue;
+          }
+
+          // Estructura de control switch para manejar las diferentes opciones
+          switch (opcion) {
+              case 1:
+                  // Llamada a un método para generar o reiniciar la lista de aviones
+                  listaAviones = generarOReiniciarLista(listaAviones, scanner);
+                  break;
+              case 2:
+                  // Llamada a un método para agregar un avión a la lista
+                  agregarAvionALista(listaAviones, scanner);
+                  break;
+              case 3:
+                  // Llamada a un método para mostrar los aviones en la lista
+                  mostrarAvionesEnLista(listaAviones);
+                  break;
+              case 4:
+                  // Llamada a un método para guardar aviones en un archivo
+                  guardarAvionesEnArchivo(listaAviones);
+                  break;
+              case 5:
+                  // Llamada a un método para cargar aviones desde un archivo
+                  avionesArchivados = cargarAvionesDesdeArchivo(avionesArchivados);
+                  break;
+              case 6:
+                  // Llamada a un método para mostrar aviones cargados desde un archivo
+                  mostrarAvionesCargadosDesdeArchivo(avionesArchivados);
+                  break;
+              case 7:
+                  // Mensaje de salida del programa
+                  System.out.println("Saliendo del programa. ¡Hasta luego!");
+                  break;
+              default:
+                  // Mensaje para opciones no válidas
+                  System.out.println("Opción no válida. Por favor, ingrese un número del 1 al 7.");
+          }
+      }
+
+      // Cierre del objeto Scanner
+      scanner.close();
+  }
+
+  // Método para mostrar el menú del programa
+  private static void mostrarMenu() {
+      System.out.println("==== Menú del Gestor de Aviones ====");
+      System.out.println("1 - Generar/Reiniciar Lista de Aviones");
+      System.out.println("2 - Agregar Avión");
+      System.out.println("3 - Mostrar Aviones en Lista");
+      System.out.println("4 - Guardar Aviones en Archivo");
+      System.out.println("5 - Cargar Aviones desde Archivo");
+      System.out.println("6 - Mostrar Aviones Cargados desde Archivo");
+      System.out.println("7 - Salir");
+      System.out.print("Ingrese una opción: ");
+  }
+
+  // Método para generar o reiniciar la lista de aviones
+  private static LinkedList<Avion> generarOReiniciarLista(LinkedList<Avion> aviones, Scanner leer) {
+      String respuesta = "n";
+
+      // Verificación si la lista ya tiene aviones añadidos
+      if (aviones != null && !aviones.isEmpty()) {
+          System.out.print("La lista ya tiene aviones añadidos. ¿Desea reiniciarla? (s/n): ");
+          respuesta = leer.next();
+
+          // Estructura de control switch para manejar la respuesta del usuario
+          switch (respuesta.toLowerCase()) {
+              case "n":
+                  System.out.println("La lista original se mantiene.");
+                  break;
+              case "s":
+                  // Reinicio de la lista de aviones
+                  aviones.clear();
+                  System.out.println("Lista de aviones reiniciada.");
+                  break;
+              default:
+                  System.out.println("Opción incorrecta. La lista original se mantiene.");
+          }
+      } else {
+          // Creación de una nueva lista de aviones y agregado de ejemplos
+          aviones = new LinkedList<>();
+          // Ejemplos de aviones
+          aviones.add(new Avion("Boeing 747", 500, "Verano"));
+          aviones.add(new Avion("Airbus A320", 200, "Primavera"));
+          aviones.add(new Avion("Cessna 172", 4, "Invierno"));
+          System.out.println("Lista de aviones vacía generada con ejemplos.");
+      }
+      return aviones;
+  }
+
+  // Método para agregar un avión a la lista
+  private static void agregarAvionALista(LinkedList<Avion> aviones, Scanner leer) {
+      Avion avion = new Avion();
+
+      System.out.print("Ingrese el modelo del avión: ");
+      leer.nextLine();
+      avion.setModelo(leer.nextLine());
+
+      try {
+          // Lectura de la capacidad del avión
+          System.out.print("Ingrese la capacidad del avión: ");
+          avion.setCapacidad(leer.nextInt());
+
+          // Lectura de la temporada del avión
+          System.out.print("Ingrese la temporada del avión (Verano/Primavera/Invierno/Otoño): ");
+          leer.nextLine();
+          avion.setTemporada(leer.nextLine().toLowerCase());
+
+          // Agregado del avión a la lista
+          aviones.add(avion);
+          System.out.println("Avión agregado a la lista.");
+      } catch (InputMismatchException e) {
+          // Manejo de excepciones para entrada no válida de capacidad
+          System.out.println("Error: Debe ingresar un número para la capacidad del avión.");
+      }
+  }
+
+  // Método para mostrar los aviones en la lista
+  private static void mostrarAvionesEnLista(LinkedList<Avion> aviones) {
+      // Verificación si la lista no es nula y no está vacía
+      if (aviones != null && !aviones.isEmpty()) {
+          System.out.println("==== Aviones en la Lista ====");
+          // Iteración sobre la lista y muestra de información de cada avión
+          for (Avion avion : aviones) {
+              System.out.println("Modelo: " + avion.getModelo() +
+                      " | Capacidad: " + avion.getCapacidad() +
+                      " | Temporada: " + avion.getTemporada());
+          }
+      } else {
+          // Mensaje si la lista está vacía
+          System.out.println("La lista de aviones está vacía. ¡Agregue algunos aviones primero!");
+      }
+  }
+
+  // Método para guardar aviones en un archivo
+  private static void guardarAvionesEnArchivo(LinkedList<Avion> aviones) {
+      ObjectOutputStream out = null;
+
+      try {
+          // Inicialización del flujo de salida para guardar en archivo
+          out = new ObjectOutputStream(new BufferedOutputStream(new FileOutputStream("src/Aviones.dat")));
+          // Iteración sobre la lista y escritura de cada avión en el archivo
+          for (Avion avion : aviones) {
+              out.writeObject(avion);
+          }
+          System.out.println("Aviones guardados en el archivo correctamente.");
+      } catch (IOException e) {
+          // Manejo de excepciones para errores de entrada/salida
+          System.out.println("Error al guardar aviones en el archivo: " + e.getMessage());
+      } finally {
+          if (out != null) {
+              try {
+                  // Cierre del flujo de salida
+                  out.close();
+              } catch (IOException e) {
+                  System.out.println("Error al cerrar el flujo de salida: " + e.getMessage());
+              }
+          }
+      }
+  }
+
+  // Método para cargar aviones desde un archivo
+  private static ArrayList<Avion> cargarAvionesDesdeArchivo(ArrayList<Avion> avionesArchivados) {
+      ObjectInputStream in = null;
+
+      try {
+          // Inicialización del flujo de entrada para cargar desde archivo
+          in = new ObjectInputStream(new BufferedInputStream(new FileInputStream("src/Aviones.dat")));
+
+          Avion avion;
+
+          // Bucle infinito para cargar aviones hasta alcanzar el final del archivo
+          while (true) {
+              // Lectura de un avión desde el archivo
+              avion = (Avion) in.readObject();
+              // Agregado del avión a la lista de aviones cargados
+              avionesArchivados.add(avion);
+          }
+      } catch (EOFException e) {
+          // Manejo de excepciones para alcanzar el final del archivo
+          System.out.print("Se alcanzó el final del archivo de Aviones.dat. ");
+          if (avionesArchivados.size() == 0) {
+              System.out.println("No había datos guardados para cargar.");
+          } else {
+              System.out.println("Todos los datos fueron cargados.");
+          }
+      } catch (IOException | ClassNotFoundException e) {
+          // Manejo de excepciones para errores de entrada/salida o clase no encontrada
+          System.out.println("Error al cargar aviones desde el archivo: " + e.getMessage());
+      } finally {
+          if (in != null) {
+              try {
+                  // Cierre del flujo de entrada
+                  in.close();
+              } catch (IOException e) {
+                  System.out.println("Error al cerrar el flujo de entrada: " + e.getMessage());
+              }
+          }
+      }
+
+      // Retorno de la lista de aviones cargados
+      return avionesArchivados;
+  }
+
+  // Método para mostrar aviones cargados desde un archivo
+  private static void mostrarAvionesCargadosDesdeArchivo(ArrayList<Avion> avionesArchivados) {
+      // Verificación si la lista no es nula y no está vacía
+      if (avionesArchivados != null && !avionesArchivados.isEmpty()) {
+          System.out.println("==== Aviones Cargados desde el Archivo ====");
+          // Iteración sobre la lista y muestra de información de cada avión cargado
+          for (Avion avion : avionesArchivados) {
+              System.out.println("Modelo: " + avion.getModelo() +
+                      " | Capacidad: " + avion.getCapacidad() +
+                      " | Temporada: " + avion.getTemporada());
+          }
+      } else {
+          // Mensaje si la lista está vacía
+          System.out.println("No se encuentran datos cargados.");
+      }
+  }
+}
